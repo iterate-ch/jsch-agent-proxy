@@ -67,6 +67,8 @@ public class AgentProxy {
   private static final byte SSH_COM_AGENT2_FAILURE = 102;
 
   private static final byte SSH_AGENT_OLD_SIGNATURE = 0x01;
+  public static final byte SSH_AGENT_RSA_SHA2_256 = 0x02;
+  public static final byte SSH_AGENT_RSA_SHA2_512 = 0x04;
 
   private final byte[] buf = new byte[1024];
   private final Buffer buffer = new Buffer(buf);
@@ -116,6 +118,10 @@ public class AgentProxy {
   }
 
   public synchronized byte[] sign(byte[] blob, byte[] data) {
+    return this.sign(blob, data, 0);
+  }
+
+  public synchronized byte[] sign(byte[] blob, byte[] data, int flags) {
     byte[] result = null;
 
     byte code1 = SSH2_AGENTC_SIGN_REQUEST;
@@ -127,7 +133,7 @@ public class AgentProxy {
     buffer.putByte(code1);
     buffer.putString(blob);
     buffer.putString(data);
-    buffer.putInt(0);   // SSH_AGENT_OLD_SIGNATURE
+    buffer.putInt(flags);
     buffer.insertLength();
 
     try {

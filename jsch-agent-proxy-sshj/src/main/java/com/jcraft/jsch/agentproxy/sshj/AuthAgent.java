@@ -28,30 +28,44 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.jcraft.jsch.agentproxy.sshj;
 
+import com.hierynomus.sshj.key.KeyAlgorithm;
+import com.hierynomus.sshj.key.KeyAlgorithms;
 import com.jcraft.jsch.agentproxy.AgentProxy;
 import com.jcraft.jsch.agentproxy.Identity;
 import net.schmizz.sshj.common.Buffer;
+import net.schmizz.sshj.common.KeyType;
 import net.schmizz.sshj.common.Message;
 import net.schmizz.sshj.common.SSHPacket;
 import net.schmizz.sshj.transport.TransportException;
 import net.schmizz.sshj.userauth.UserAuthException;
 import net.schmizz.sshj.userauth.method.AbstractAuthMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * An AuthMethod for sshj authentication with an agent.
  */
 public class AuthAgent extends AbstractAuthMethod {
-    protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    /** The AgentProxy instance that is used for signing */
+    /**
+     * The AgentProxy instance that is used for signing
+     */
     private final AgentProxy agentProxy;
-    /** The identity from Agent */
+    /**
+     * The identity from Agent
+     */
     private final Identity identity;
-    /** The identity's key algorithm */
+    /**
+     * The identity's key algorithm
+     */
     private final String algorithm;
     private final String comment;
+
+    private Queue<KeyAlgorithm> available;
+
+    private final KeyType keyType;
 
     public AuthAgent(AgentProxy agentProxy, Identity identity) throws Buffer.BufferException {
         super("publickey");
@@ -59,9 +73,66 @@ public class AuthAgent extends AbstractAuthMethod {
         this.identity = identity;
         this.comment = new String(identity.getComment());
         this.algorithm = (new Buffer.PlainBuffer(identity.getBlob())).readString();
+        this.keyType = KeyType.fromString(algorithm);
     }
 
-    /** Internal use. */
+    private KeyAlgorithm getPublicKeyAlgorithm(KeyType keyType) throws TransportException {
+        if (available == null) {
+            available = new LinkedList<>(params.getTransport().getClientKeyAlgorithms(keyType));
+        }
+        return available.peek();
+    }
+
+    @Override
+    public boolean shouldRetry() {
+        if (available != null) {
+            available.poll();
+            return !available.isEmpty();
+        }
+        return false;
+    }
+
+    protected SSHPacket putPubKey(SSHPacket reqBuf)
+            throws UserAuthException {
+        try {
+            KeyAlgorithm ka = getPublicKeyAlgorithm(keyType);
+            if (ka != null) {
+                reqBuf.putString(ka.getKeyAlgorithm()).putBytes(identity.getBlob()).getCompactData();
+                return reqBuf;
+            }
+        } catch (IOException ioe) {
+            throw new UserAuthException("No KeyAlgorithm configured for key " + keyType, ioe);
+        }
+        throw new UserAuthException("No KeyAlgorithm configured for key " + keyType);
+    }
+
+    private int getSignFlags(KeyAlgorithm algorithm) {
+        if (keyType == KeyType.RSA) {
+            if (KeyAlgorithms.RSASHA256().getName().equals(algorithm.getKeyAlgorithm())) {
+                return AgentProxy.SSH_AGENT_RSA_SHA2_256;
+            }
+            if (KeyAlgorithms.RSASHA512().getName().equals(algorithm.getKeyAlgorithm())) {
+                return AgentProxy.SSH_AGENT_RSA_SHA2_512;
+            }
+        }
+        return 0;
+    }
+
+    protected SSHPacket putSig(SSHPacket reqBuf)
+            throws TransportException {
+        final byte[] dataToSign = new Buffer.PlainBuffer()
+                .putString(params.getTransport().getSessionID())
+                .putBuffer(reqBuf) // & rest of the data for sig
+                .getCompactData();
+
+        reqBuf.putBytes(agentProxy.sign(identity.getBlob(), dataToSign, getSignFlags(getPublicKeyAlgorithm(keyType))));
+
+        return reqBuf;
+    }
+
+    /**
+     * Internal use.
+     */
     @Override
     public void handle(Message cmd, SSHPacket buf)
             throws UserAuthException, TransportException {
@@ -71,24 +142,17 @@ public class AuthAgent extends AbstractAuthMethod {
             super.handle(cmd, buf);
     }
 
-    protected SSHPacket putPubKey(SSHPacket reqBuf)
+    /**
+     * Builds SSH_MSG_USERAUTH_REQUEST packet.
+     *
+     * @param signed whether the request packet will contain signature
+     * @return the {@link SSHPacket} containing the request packet
+     * @throws UserAuthException
+     */
+    private SSHPacket buildReq(boolean signed)
             throws UserAuthException {
-        reqBuf
-            .putString(algorithm)
-            .putBytes(identity.getBlob()).getCompactData();
-        return reqBuf;
-    }
-
-    private SSHPacket putSig(SSHPacket reqBuf)
-            throws UserAuthException {
-        final byte[] dataToSign = new Buffer.PlainBuffer()
-                .putString(params.getTransport().getSessionID())
-                .putBuffer(reqBuf) // & rest of the data for sig
-                .getCompactData();
-
-        reqBuf.putBytes(agentProxy.sign(identity.getBlob(), dataToSign));
-
-        return reqBuf;
+        log.debug("Attempting authentication using agent identity {}", comment);
+        return putPubKey(super.buildReq().putBoolean(signed));
     }
 
     /**
@@ -99,25 +163,13 @@ public class AuthAgent extends AbstractAuthMethod {
      */
     private void sendSignedReq()
             throws UserAuthException, TransportException {
+        log.debug("Key acceptable, sending signed request");
         params.getTransport().write(putSig(buildReq(true)));
     }
 
     /**
-     * Builds SSH_MSG_USERAUTH_REQUEST packet.
-     *
-     * @param signed whether the request packet will contain signature
-     *
-     * @return the {@link SSHPacket} containing the request packet
-     *
-     * @throws UserAuthException
+     * Builds a feeler request (sans signature).
      */
-    private SSHPacket buildReq(boolean signed)
-            throws UserAuthException {
-        log.debug("Attempting authentication using agent identity {}", comment);
-        return putPubKey(super.buildReq().putBoolean(signed));
-    }
-
-    /** Builds a feeler request (sans signature). */
     @Override
     protected SSHPacket buildReq()
             throws UserAuthException {

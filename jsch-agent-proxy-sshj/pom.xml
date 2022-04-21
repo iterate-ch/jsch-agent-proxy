@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.jcraft</groupId>
     <artifactId>jsch.agentproxy</artifactId>
-    <version>0.0.9</version>
+    <version>0.0.10-SNAPSHOT</version>
   </parent>
 
   <artifactId>jsch.agentproxy.sshj</artifactId>
@@ -14,14 +14,19 @@
 
   <dependencies>
     <dependency>
-      <groupId>net.schmizz</groupId>
+      <groupId>com.hierynomus</groupId>
       <artifactId>sshj</artifactId>
-      <version>[0.8.1,)</version>
+      <version>[0.33.0,)</version>
     </dependency>
     <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch.agentproxy.core</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.32</version>
     </dependency>
   </dependencies>
 
@@ -31,6 +36,14 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.3.2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>7</source>
+          <target>7</target>
+        </configuration>
       </plugin>
     </plugins>
   </build>
