@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.jcraft</groupId>
+    <groupId>ch.iterate.ssh</groupId>
     <artifactId>jsch.agentproxy</artifactId>
     <version>0.0.10-SNAPSHOT</version>
   </parent>
