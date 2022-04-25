@@ -4,9 +4,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.jcraft</groupId>
+    <groupId>ch.iterate.ssh</groupId>
     <artifactId>jsch.agentproxy</artifactId>
-    <version>0.0.9</version>
+    <version>0.0.10-SNAPSHOT</version>
   </parent>
 
   <artifactId>jsch.agentproxy.pageant</artifactId>
@@ -15,7 +15,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.jcraft</groupId>
+      <groupId>ch.iterate.ssh</groupId>
       <artifactId>jsch.agentproxy.core</artifactId>
       <version>${project.version}</version>
     </dependency>
