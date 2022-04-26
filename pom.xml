@@ -73,9 +73,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:git://github.com/ymnk/jsch-agent-proxy.git</connection>
-    <developerConnection>scm:git:git@github.com:ymnk/jsch-agent-proxy.git</developerConnection>
-    <url>http://github.com/ymnk/jsch-agent-proxy/</url>
+    <connection>scm:git:git://github.com/iterate-ch/jsch-agent-proxy.git</connection>
+    <developerConnection>scm:git:git@github.com:iterate-ch/jsch-agent-proxy.git</developerConnection>
+    <url>https://github.com/iterate-ch/jsch-agent-proxy/</url>
   </scm>
 
   <build>
@@ -141,6 +141,11 @@
          <artifactId>wagon-ssh-external</artifactId>
          <version>1.0-alpha-5</version>
       </extension>
+      <extension>
+        <groupId>org.springframework.build</groupId>
+        <artifactId>aws-maven</artifactId>
+        <version>5.0.0.RELEASE</version>
+      </extension>
     </extensions>
   </build>
 
@@ -149,4 +154,16 @@
     <artifactId>oss-parent</artifactId>
     <version>6</version>
   </parent>
+
+  <distributionManagement>
+    <repository>
+      <id>maven.cyberduck.io-release</id>
+      <url>s3://repo.maven.cyberduck.io/releases/</url>
+      <layout>default</layout>
+    </repository>
+    <snapshotRepository>
+      <id>maven.cyberduck.io-snapshot</id>
+      <url>s3://repo.maven.cyberduck.io/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
 </project>
