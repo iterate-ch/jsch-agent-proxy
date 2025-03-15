@@ -37,33 +37,16 @@ import com.jcraft.jsch.agentproxy.USocketFactory;
 import java.io.IOException;
 
 public class SSHAgentConnector implements Connector {
-  private USocketFactory factory;
-  private String usocketPath;
+  private final USocketFactory factory;
+  private final String usocketPath;
 
-  public SSHAgentConnector(USocketFactory factory) throws AgentProxyException {
+  public SSHAgentConnector(USocketFactory factory) {
     this(factory, null);
   }
  
-  public SSHAgentConnector(USocketFactory factory, String usocketPath) throws AgentProxyException {
+  public SSHAgentConnector(USocketFactory factory, String usocketPath) {
     this.factory = factory;
     this.usocketPath = usocketPath;
-
-    // checking if factory is really functional.
-    USocketFactory.Socket sock = null;
-    try {
-      sock = open();
-    }
-    catch(IOException e){ throw new AgentProxyException(e.toString()); }
-    catch(Exception e){ throw new AgentProxyException(e.toString()); }
-    finally{
-      try{
-        if(sock!=null)
-          sock.close();
-      }
-      catch(IOException e){
-        throw new AgentProxyException(e.toString());
-      }
-    }
   }
 
   public String getName(){
