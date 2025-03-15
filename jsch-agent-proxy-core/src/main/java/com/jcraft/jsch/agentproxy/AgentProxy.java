@@ -103,8 +103,9 @@ public class AgentProxy {
 
     int rcode = buffer.getByte();
 
-    check_reply(rcode);
-//System.out.println(rcode == code2);
+    if(rcode != SSH2_AGENT_IDENTITIES_ANSWER) {
+      return identities;
+    }
 
     int count = buffer.getInt();
     if(count <= 0 || count > MAX_AGENT_IDENTITIES) {
