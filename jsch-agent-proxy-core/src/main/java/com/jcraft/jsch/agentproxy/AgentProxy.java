@@ -70,6 +70,8 @@ public class AgentProxy {
   public static final byte SSH_AGENT_RSA_SHA2_256 = 0x02;
   public static final byte SSH_AGENT_RSA_SHA2_512 = 0x04;
 
+  private static final int MAX_AGENT_IDENTITIES = 2048;
+
   private final byte[] buf = new byte[1024];
   private final Buffer buffer = new Buffer(buf);
 
@@ -105,8 +107,9 @@ public class AgentProxy {
 //System.out.println(rcode == code2);
 
     int count = buffer.getInt();
-
-//System.out.println(count);
+    if(count <= 0 || count > MAX_AGENT_IDENTITIES) {
+      return identities;
+    }
 
     identities = new Identity[count];
 
