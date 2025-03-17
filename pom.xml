@@ -9,7 +9,7 @@
 
   <groupId>ch.iterate.ssh</groupId>
   <artifactId>jsch.agentproxy</artifactId>
-  <version>0.0.11-SNAPSHOT</version>
+  <version>0.0.11</version>
   <packaging>pom</packaging>
   <name>jsch-agent-proxy: a parent of modules</name>
 
