@@ -29,7 +29,6 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch.agentproxy.usocket;
 
-import com.jcraft.jsch.agentproxy.AgentProxyException;
 import com.jcraft.jsch.agentproxy.USocketFactory;
 
 import com.sun.jna.Library;
@@ -62,7 +61,7 @@ public class JNAUSocketFactory implements USocketFactory {
     }
   }
 
-  public JNAUSocketFactory() throws AgentProxyException {
+  public JNAUSocketFactory() {
   }
 
   public class MySocket extends Socket {

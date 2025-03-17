@@ -99,13 +99,8 @@ public abstract class ConnectorFactory {
             }
           }
           else if(_usocketFactories[j].trim().equals("jna")) {
-            try {
-              USocketFactory usf = new JNAUSocketFactory();
-              return new SSHAgentConnector(usf, usocketPath);
-            }
-            catch(AgentProxyException e){
-              trials.add("ssh-agent:jna");
-            }
+            USocketFactory usf = new JNAUSocketFactory();
+            return new SSHAgentConnector(usf, usocketPath);
           }
         }
       }
