@@ -44,7 +44,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <jsch.version>0.1.49</jsch.version>
     <jna.version>5.17.0</jna.version>
-    <trilead.version>1.0.0-build217</trilead.version>
+    <trilead.version>1.0.0-build222</trilead.version>
     <maven.compile.source>1.8</maven.compile.source>
     <maven.compile.target>1.8</maven.compile.target>
   </properties>
