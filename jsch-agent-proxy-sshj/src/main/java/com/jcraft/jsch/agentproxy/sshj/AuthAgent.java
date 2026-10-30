@@ -107,11 +107,26 @@ public class AuthAgent extends AbstractAuthMethod {
     }
 
     private int getSignFlags(KeyAlgorithm algorithm) {
-        if (keyType == KeyType.RSA) {
-            if (KeyAlgorithms.RSASHA256().getName().equals(algorithm.getKeyAlgorithm())) {
+        return getSignFlags(keyType, algorithm.getKeyAlgorithm());
+    }
+
+    /**
+     * Determine the flags for the agent sign request so the agent uses the same hash algorithm
+     * as advertised in the userauth request. Applies to plain RSA keys and RSA certificates alike;
+     * without the flags the agent falls back to SHA-1 (ssh-rsa) and the server rejects the signature.
+     *
+     * @param keyType   the type of the identity's key
+     * @param algorithm the public key algorithm name sent in the userauth request
+     * @return SSH_AGENT_RSA_SHA2_256, SSH_AGENT_RSA_SHA2_512 or 0
+     */
+    static int getSignFlags(KeyType keyType, String algorithm) {
+        if (keyType == KeyType.RSA || keyType == KeyType.RSA_CERT) {
+            if (KeyAlgorithms.RSASHA256().getName().equals(algorithm)
+                    || "rsa-sha2-256-cert-v01@openssh.com".equals(algorithm)) {
                 return AgentProxy.SSH_AGENT_RSA_SHA2_256;
             }
-            if (KeyAlgorithms.RSASHA512().getName().equals(algorithm.getKeyAlgorithm())) {
+            if (KeyAlgorithms.RSASHA512().getName().equals(algorithm)
+                    || "rsa-sha2-512-cert-v01@openssh.com".equals(algorithm)) {
                 return AgentProxy.SSH_AGENT_RSA_SHA2_512;
             }
         }
